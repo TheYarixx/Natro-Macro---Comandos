@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Natro Macro - Smart Tool</title>
-    <meta name="description" content="Herramienta avanzada para Natro Macro con IA desbloqueada">
+    <title>Natro Macro Hub - Ultimate Edition</title>
+    <meta name="description" content="Base de datos completa de Natro Macro con IA">
     
     <style>
         /* =========================================
@@ -27,6 +27,9 @@
             /* AI Colors */
             --ai-gradient: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
             --ai-msg-bg: #25262b;
+            
+            /* Info Card Color */
+            --info-accent: #ff00ff;
         }
 
         [data-theme="light"] {
@@ -162,6 +165,13 @@
             color: #000;
             border-color: var(--accent);
         }
+        
+        /* Estilo especial para el chip Info */
+        .filter-chip[data-cat="Info"].active {
+            background: var(--info-accent);
+            color: #fff;
+            border-color: var(--info-accent);
+        }
 
         /* =========================================
            GRID COMMANDS
@@ -181,6 +191,13 @@
             flex-direction: column;
             gap: 10px;
             transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Borde especial para Info Cards */
+        .cmd-card.cat-Info {
+            border-left: 4px solid var(--info-accent);
         }
 
         .cmd-card:hover { transform: translateY(-2px); border-color: var(--accent); }
@@ -424,19 +441,176 @@
     // ================= CONFIG & DATA =================
     const apiKey = ""; // API Key injected at runtime
     
-    // Lista base para referencia y búsqueda normal
+    // LISTA COMPLETA DE COMANDOS
     const comandos = [
-        { cat: "Gather", cmd: "?set FieldName1 (Field)", desc: "Establece campo 1.", desc_en: "Sets field 1." },
-        { cat: "Gather", cmd: "?set Pattern (Pattern)", desc: "Patrón de recolección.", desc_en: "Gather pattern." },
-        { cat: "Collect", cmd: "?set ConvertBalloon (bool)", desc: "Convierte globos.", desc_en: "Convert balloons." },
-        { cat: "Kill", cmd: "?set EnableVicious (bool)", desc: "Matar Vicious.", desc_en: "Kill Vicious." },
-        { cat: "Kill", cmd: "?set EnableMondo (bool)", desc: "Matar Mondo.", desc_en: "Kill Mondo." },
-        { cat: "Boost", cmd: "?set BlueExtract (bool)", desc: "Usar Extracto Azul.", desc_en: "Use Blue Extract." },
-        { cat: "Boost", cmd: "?set RedExtract (bool)", desc: "Usar Extracto Rojo.", desc_en: "Use Red Extract." },
-        { cat: "Settings", cmd: "?set ReconnectTime (mins)", desc: "Tiempo reconexión.", desc_en: "Reconnect time." },
-        { cat: "Settings", cmd: "?set WalkSpeed (num)", desc: "Velocidad caminar.", desc_en: "Walk speed." },
-        { cat: "Status", cmd: "?status", desc: "Estado actual.", desc_en: "Current status." },
-        { cat: "Other", cmd: "?reset", desc: "Reiniciar personaje.", desc_en: "Reset character." }
+        // --- INFO & HELP (NUEVA SECCIÓN) ---
+        { cat: "Info", cmd: "?help", desc: "Muestra la lista básica de comandos.", desc_en: "Shows basic command list." },
+        { cat: "Info", cmd: "[Opcional]", desc: "Los corchetes significan que el parámetro es opcional. Ej: ?rejoin [Delay].", desc_en: "Brackets mean optional parameter. Ex: ?rejoin [Delay]." },
+        { cat: "Info", cmd: "(Obligatorio)", desc: "Los paréntesis significan que debes escribir un valor. Ej: ?prefix (!).", desc_en: "Parentheses mean mandatory value. Ex: ?prefix (!)." },
+        { cat: "Info", cmd: "Toggles 1/0", desc: "Casi siempre: 1 = Activado (On), 0 = Desactivado (Off).", desc_en: "Mostly: 1 = On, 0 = Off." },
+        { cat: "Info", cmd: "Valores", desc: "Si ves opciones como 'Blue|Red', debes escribir una tal cual.", desc_en: "If you see 'Blue|Red', type one exactly as shown." },
+
+        // --- GATHER TAB ---
+        { cat: "Gather", cmd: "?set FieldName1 (Field)", desc: "Selecciona el campo donde farmeas (Slot 1).", desc_en: "Selects the farming field (Slot 1)." },
+        { cat: "Gather", cmd: "?set FieldName2 (Field)", desc: "Selecciona el campo donde farmeas (Slot 2).", desc_en: "Selects the farming field (Slot 2)." },
+        { cat: "Gather", cmd: "?set FieldName3 (Field)", desc: "Selecciona el campo donde farmeas (Slot 3).", desc_en: "Selects the farming field (Slot 3)." },
+        { cat: "Gather", cmd: "?set FieldPattern1 (Pattern)", desc: "Elige el patrón de movimiento (Slot 1).", desc_en: "Sets movement pattern (Slot 1)." },
+        { cat: "Gather", cmd: "?set FieldPattern2 (Pattern)", desc: "Elige el patrón de movimiento (Slot 2).", desc_en: "Sets movement pattern (Slot 2)." },
+        { cat: "Gather", cmd: "?set FieldPattern3 (Pattern)", desc: "Elige el patrón de movimiento (Slot 3).", desc_en: "Sets movement pattern (Slot 3)." },
+        { cat: "Gather", cmd: "?set FieldPatternSize1 (Size)", desc: "Ajusta el tamaño del patrón (XS-XL).", desc_en: "Sets pattern size (XS-XL)." },
+        { cat: "Gather", cmd: "?set FieldPatternReps1 (Length)", desc: "Número de veces que se repite el patrón (1-9).", desc_en: "Pattern repetition count (1-9)." },
+        { cat: "Gather", cmd: "?set FieldPatternShift1 (On/Off)", desc: "Activa/desactiva shiftlock durante el patrón.", desc_en: "Toggles shiftlock during pattern." },
+        { cat: "Gather", cmd: "?set FieldDriftCheck1 (On/Off)", desc: "Compensación de deriva (evita desviarse).", desc_en: "Drift compensation check." },
+        { cat: "Gather", cmd: "?set FieldPatternInvertFB1 (On/Off)", desc: "Invierte movimiento adelante/atrás.", desc_en: "Inverts Front/Back movement." },
+        { cat: "Gather", cmd: "?set FieldPatternInvertLR1 (On/Off)", desc: "Invierte movimiento izquierda/derecha.", desc_en: "Inverts Left/Right movement." },
+        { cat: "Gather", cmd: "?set FieldRotateDirection1 (Dir)", desc: "Dirección giro cámara (None, Left, Right).", desc_en: "Camera rotation direction." },
+        { cat: "Gather", cmd: "?set FieldRotateTimes1 (Num)", desc: "Vueltas de cámara antes de iniciar (1-4).", desc_en: "Camera rotations count." },
+        { cat: "Gather", cmd: "?set FieldSprinklerLoc1 (Dir)", desc: "Ubicación sprinklers (Center, Upper, etc).", desc_en: "Sprinkler location." },
+        { cat: "Gather", cmd: "?set FieldSprinklerDist1 (Dist)", desc: "Distancia de sprinklers (1-10).", desc_en: "Sprinkler distance." },
+        { cat: "Gather", cmd: "?set FieldUntilMins1 (Mins)", desc: "Tiempo máx. en campo (1-9999 mins).", desc_en: "Max field time in minutes." },
+        { cat: "Gather", cmd: "?set FieldUntilPack1 (Percent)", desc: "% Mochila para irse (5-100%).", desc_en: "Backpack percent to leave." },
+        { cat: "Gather", cmd: "?set FieldReturnType1 (Type)", desc: "Método regreso a Hive (Walk, Reset).", desc_en: "Return to hive method." },
+
+        // --- COLLECT TAB ---
+        { cat: "Collect", cmd: "?set ClockCheck (1/0)", desc: "Activa/Desactiva detección del Wealth Clock.", desc_en: "Toggles Wealth Clock detection." },
+        { cat: "Collect", cmd: "?timer reset clock", desc: "Resetea timer de Wealth Clock (1h).", desc_en: "Resets Wealth Clock timer." },
+        { cat: "Collect", cmd: "?set MondoBuffCheck (1/0)", desc: "Activa/Desactiva detección buff Mondo.", desc_en: "Toggles Mondo Buff detection." },
+        { cat: "Collect", cmd: "?set MondoAction (Buff/Kill)", desc: "Acción Mondo: Buff o Matar.", desc_en: "Mondo Action: Buff or Kill." },
+        { cat: "Collect", cmd: "?set AntPassCheck (1/0)", desc: "Activa/Desactiva Ant Pass.", desc_en: "Toggles Ant Pass detection." },
+        { cat: "Collect", cmd: "?set AntPassAction (Pass/Challenge)", desc: "Solo Pass o hacer Challenge.", desc_en: "Dispense Pass or do Challenge." },
+        { cat: "Collect", cmd: "?set RoboPassCheck (1/0)", desc: "Activa/Desactiva Robo Pass.", desc_en: "Toggles Robo Pass detection." },
+        { cat: "Collect", cmd: "?set HoneystormCheck (1/0)", desc: "Activa/Desactiva Honey Storm.", desc_en: "Toggles Honey Storm detection." },
+        { cat: "Collect", cmd: "?set HoneyDisCheck (1/0)", desc: "Activa/Desactiva dispensador Honey.", desc_en: "Toggles Honey Dispenser." },
+        { cat: "Collect", cmd: "?set TreatDisCheck (1/0)", desc: "Activa/Desactiva dispensador Treats.", desc_en: "Toggles Treats Dispenser." },
+        { cat: "Collect", cmd: "?set BlueberryDisCheck (1/0)", desc: "Activa/Desactiva dispensador Blueberry.", desc_en: "Toggles Blueberry Dispenser." },
+        { cat: "Collect", cmd: "?set StrawberryDisCheck (1/0)", desc: "Activa/Desactiva dispensador Strawberry.", desc_en: "Toggles Strawberry Dispenser." },
+        { cat: "Collect", cmd: "?set CoconutDisCheck (1/0)", desc: "Activa/Desactiva dispensador Coconut.", desc_en: "Toggles Coconut Dispenser." },
+        { cat: "Collect", cmd: "?set GlueDisCheck (1/0)", desc: "Activa/Desactiva dispensador Glue.", desc_en: "Toggles Glue Dispenser." },
+        { cat: "Collect", cmd: "?set BeesmasGatherInterruptCheck (1/0)", desc: "Interrumpe recolección para Beesmas.", desc_en: "Interrupts gather for Beesmas." },
+        { cat: "Collect", cmd: "?set BlenderCheck (1/0)", desc: "Activa uso del Blender.", desc_en: "Toggles Blender usage." },
+        { cat: "Collect", cmd: "?set BlenderItem1 (Item)", desc: "Cambia item 1 del Blender.", desc_en: "Sets Blender item 1." },
+
+        // --- KILL TAB ---
+        { cat: "Kill", cmd: "?set MonsterRespawnTime (Percent)", desc: "Reducción tiempo respawn monstruos (%).", desc_en: "Monster respawn time reduction (%)." },
+        { cat: "Kill", cmd: "?set BugrunInterruptCheck (1/0)", desc: "Interrumpe recolección para Bug Run.", desc_en: "Interrupts gather for Bug Run." },
+        { cat: "Kill", cmd: "?set BugrunLadybugsCheck (1/0)", desc: "Matar Ladybugs en Bug Run.", desc_en: "Kill Ladybugs in Bug Run." },
+        { cat: "Kill", cmd: "?set BugrunRhinoBeetlesCheck (1/0)", desc: "Matar Rhinos en Bug Run.", desc_en: "Kill Rhinos in Bug Run." },
+        { cat: "Kill", cmd: "?set BugrunSpiderCheck (1/0)", desc: "Matar Spider en Bug Run.", desc_en: "Kill Spider in Bug Run." },
+        { cat: "Kill", cmd: "?set BugrunMantisCheck (1/0)", desc: "Matar Mantis en Bug Run.", desc_en: "Kill Mantis in Bug Run." },
+        { cat: "Kill", cmd: "?set BugrunScorpionsCheck (1/0)", desc: "Matar Scorpions en Bug Run.", desc_en: "Kill Scorpions in Bug Run." },
+        { cat: "Kill", cmd: "?set BugrunWerewolfCheck (1/0)", desc: "Matar Werewolf en Bug Run.", desc_en: "Kill Werewolf in Bug Run." },
+        { cat: "Kill", cmd: "?set StingerCheck (1/0)", desc: "Activa matar Vicious Bee.", desc_en: "Enables killing Vicious Bee." },
+        { cat: "Kill", cmd: "?set KingBeetleCheck (1/0)", desc: "Activa matar King Beetle.", desc_en: "Enables killing King Beetle." },
+        { cat: "Kill", cmd: "?set TunnelBearCheck (1/0)", desc: "Activa matar Tunnel Bear.", desc_en: "Enables killing Tunnel Bear." },
+        { cat: "Kill", cmd: "?set CocoCrabCheck (1/0)", desc: "Activa matar Coco Crab.", desc_en: "Enables killing Coco Crab." },
+        { cat: "Kill", cmd: "?set StumpSnailCheck (1/0)", desc: "Activa matar Stump Snail.", desc_en: "Enables killing Stump Snail." },
+        { cat: "Kill", cmd: "?set CommandoCheck (1/0)", desc: "Activa matar Commando Chicken.", desc_en: "Enables killing Commando Chicken." },
+
+        // --- BOOST TAB ---
+        { cat: "Boost", cmd: "?set FieldBooster1 (Type)", desc: "Booster gratis slot 1 (Blue/Red/Mtn).", desc_en: "Free booster slot 1 settings." },
+        { cat: "Boost", cmd: "?set BoostChaserCheck (1/0)", desc: "Ir a campo con booster activo.", desc_en: "Chase boosted fields." },
+        { cat: "Boost", cmd: "?set PineTreeBoosterCheck (1/0)", desc: "Ir a Pine Tree si tiene booster.", desc_en: "Go to Pine Tree if boosted." },
+        { cat: "Boost", cmd: "?set HotbarWhile2 (Cond)", desc: "Condición uso Hotbar Slot 2.", desc_en: "Hotbar Slot 2 condition." },
+        { cat: "Boost", cmd: "?set HotbarTime2 (Secs)", desc: "Intervalo segundos Slot 2.", desc_en: "Hotbar Slot 2 interval." },
+        { cat: "Boost", cmd: "?set ShrineItem1 (Item)", desc: "Item donación Wind Shrine 1.", desc_en: "Wind Shrine donation item 1." },
+        { cat: "Boost", cmd: "?set StickerStackCheck (1/0)", desc: "Apilado auto de stickers.", desc_en: "Auto Sticker Stack." },
+        { cat: "Boost", cmd: "?set StickerPrinterCheck (1/0)", desc: "Uso auto Sticker Printer.", desc_en: "Auto Sticker Printer use." },
+
+        // --- PLANTERS+ TAB ---
+        { cat: "Planters", cmd: "?set MConvertFullBagHarvest (1/0)", desc: "Convertir al 100% en planters manuales.", desc_en: "Convert 100% on manual planters." },
+        { cat: "Planters", cmd: "?set PlanterMode (0/1/2)", desc: "0=Off, 1=Manual, 2=Auto.", desc_en: "Planter Mode (Off/Manual/Auto)." },
+        { cat: "Planters", cmd: "?planter harvest (Slot)", desc: "Fuerza recolección planter (1-3).", desc_en: "Force harvest planter (1-3)." },
+        { cat: "Planters", cmd: "?planter release (Slot)", desc: "Igual que harvest (1-3).", desc_en: "Same as harvest (1-3)." },
+        { cat: "Planters", cmd: "?planter smoking (Slot)", desc: "Marca planter como 'smoking' (solo Until Hold).", desc_en: "Marks planter as 'smoking'." },
+        { cat: "Planters", cmd: "?planter add (h:m:s) (Slot)", desc: "Añade tiempo al temporizador del planter.", desc_en: "Adds time to planter timer." },
+        { cat: "Planters", cmd: "?planter sub (h:m:s) (Slot)", desc: "Resta tiempo al temporizador del planter.", desc_en: "Subtracts time from planter timer." },
+        { cat: "Planters", cmd: "?planter clear (Slot)", desc: "Borra datos del planter indicado.", desc_en: "Clears planter data." },
+        { cat: "Planters", cmd: "?planter screenshot (Slot)", desc: "Toma captura del planter indicado.", desc_en: "Takes screenshot of planter." },
+        { cat: "Planters", cmd: "?set MaxAllowedPlanters (0-3)", desc: "Máx planters simultáneos.", desc_en: "Max simultaneous planters." },
+        { cat: "Planters", cmd: "?set HarvestFullGrown (1/0)", desc: "Recolectar solo al 100%.", desc_en: "Harvest only when fully grown." },
+        { cat: "Planters", cmd: "?set GotoPlanterField (1/0)", desc: "Farmear solo donde hay planters.", desc_en: "Farm only in planter fields." },
+        { cat: "Planters", cmd: "?set PlasticPlanterCheck (1/0)", desc: "Uso Plastic Planter.", desc_en: "Use Plastic Planter." },
+        { cat: "Planters", cmd: "?set CandyPlanterCheck (1/0)", desc: "Uso Candy Planter.", desc_en: "Use Candy Planter." },
+        { cat: "Planters", cmd: "?set BlueClayPlanterCheck (1/0)", desc: "Uso Blue Clay Planter.", desc_en: "Use Blue Clay Planter." },
+        { cat: "Planters", cmd: "?set TackyPlanterCheck (1/0)", desc: "Uso Tacky Planter.", desc_en: "Use Tacky Planter." },
+        { cat: "Planters", cmd: "?set PesticidePlanterCheck (1/0)", desc: "Uso Pesticide Planter.", desc_en: "Use Pesticide Planter." },
+        { cat: "Planters", cmd: "?set PetalPlanterCheck (1/0)", desc: "Uso Petal Planter.", desc_en: "Use Petal Planter." },
+        { cat: "Planters", cmd: "?set PlanterOfPlentyCheck (1/0)", desc: "Uso Planter of Plenty.", desc_en: "Use Planter of Plenty." },
+
+        // --- QUEST TAB ---
+        { cat: "Quest", cmd: "?set QuestGatherMins (Mins)", desc: "Límite minutos recolección quests.", desc_en: "Quest gathering time limit." },
+        { cat: "Quest", cmd: "?set QuestGatherReturnBy (Type)", desc: "Volver por Walk o Reset.", desc_en: "Return via Walk or Reset." },
+        { cat: "Quest", cmd: "?set PolarQuestCheck (1/0)", desc: "Activa quests Polar Bear.", desc_en: "Enables Polar Bear quests." },
+        { cat: "Quest", cmd: "?set BlackQuestCheck (1/0)", desc: "Activa quests Black Bear.", desc_en: "Enables Black Bear quests." },
+        { cat: "Quest", cmd: "?set BuckoQuestCheck (1/0)", desc: "Activa quests Bucko Bee.", desc_en: "Enables Bucko Bee quests." },
+        { cat: "Quest", cmd: "?set RileyQuestCheck (1/0)", desc: "Activa quests Riley Bee.", desc_en: "Enables Riley Bee quests." },
+        { cat: "Quest", cmd: "?set BrownQuestCheck (1/0)", desc: "Activa quests Brown Bear.", desc_en: "Enables Brown Bear quests." },
+
+        // --- STATUS TAB ---
+        { cat: "Status", cmd: "?set DebugLogEnabled (1/0)", desc: "Activa registro debug detallado.", desc_en: "Enables detailed debug log." },
+        { cat: "Status", cmd: "?set webhook (Link)", desc: "Link del webhook de Discord.", desc_en: "Discord webhook link." },
+        { cat: "Status", cmd: "?set ReportChannelCheck (1/0)", desc: "Activa reportes horarios Discord.", desc_en: "Enables hourly Discord reports." },
+        { cat: "Status", cmd: "?set ssCheck (1/0)", desc: "Activa todas las capturas (SS).", desc_en: "Enables all screenshots." },
+        { cat: "Status", cmd: "?set CriticalSSCheck (1/0)", desc: "SS en eventos críticos/pings.", desc_en: "SS on critical events/pings." },
+        { cat: "Status", cmd: "?set ViciousSSCheck (1/0)", desc: "SS al ver Vicious Bee.", desc_en: "SS on Vicious Bee." },
+        { cat: "Status", cmd: "?set HoneyUpdateSSCheck (1/0)", desc: "SS cuando sube la miel.", desc_en: "SS on honey update." },
+        { cat: "Status", cmd: "?set criticalCheck (1/0)", desc: "Activa todos los pings de alerta.", desc_en: "Enables all alert pings." },
+        { cat: "Status", cmd: "?set DisconnectPingCheck (1/0)", desc: "Ping al desconectarse.", desc_en: "Ping on disconnect." },
+        { cat: "Status", cmd: "?set GameFrozenPingCheck (1/0)", desc: "Ping si juego congelado.", desc_en: "Ping on game freeze." },
+        { cat: "Status", cmd: "?set NightAnnouncementCheck (1/0)", desc: "Anuncia noche/Vicious.", desc_en: "Announce Night/Vicious." },
+
+        // --- SETTINGS TAB ---
+        { cat: "Settings", cmd: "?set HiveSlot (1-6)", desc: "Slot de colmena (der a izq).", desc_en: "Hive slot (right to left)." },
+        { cat: "Settings", cmd: "?set HiveBees (1-50)", desc: "Número de abejas.", desc_en: "Number of bees." },
+        { cat: "Settings", cmd: "?set ConvertDelay (Secs)", desc: "Espera tras convertir.", desc_en: "Delay after converting." },
+        { cat: "Settings", cmd: "?set PrivServer (Link)", desc: "Enlace servidor privado.", desc_en: "Private server link." },
+        { cat: "Settings", cmd: "?set ReconnectInterval (Hrs)", desc: "Reconectar cada N horas.", desc_en: "Reconnect every N hours." },
+        { cat: "Settings", cmd: "?set MoveSpeedNum (Speed)", desc: "Velocidad exacta (ej 33.6).", desc_en: "Exact move speed." },
+        { cat: "Settings", cmd: "?set MoveMethod (Cannon/Walk)", desc: "Método de movimiento.", desc_en: "Movement method." },
+        { cat: "Settings", cmd: "?set SprinklerType (Type)", desc: "Tipo sprinkler (Basic-Supreme).", desc_en: "Sprinkler type." },
+        { cat: "Settings", cmd: "?set ConvertBalloon (Mode)", desc: "Always, Never, Every, Gather.", desc_en: "Balloon convert mode." },
+        { cat: "Settings", cmd: "?set DisableToolUse (1/0)", desc: "Desactiva uso de herramienta.", desc_en: "Disables tool use." },
+
+        // --- OTHER / SYSTEM / UTILS ---
+        { cat: "Other", cmd: "?timers", desc: "Muestra todos los temporizadores activos.", desc_en: "Shows all active timers." },
+        { cat: "Other", cmd: "?timers reset (Name)", desc: "Resetea el timer como si acabara de recolectarse.", desc_en: "Resets timer as if just harvested." },
+        { cat: "Other", cmd: "?timers ready (Name)", desc: "Pone el temporizador listo ya.", desc_en: "Sets timer to ready now." },
+        { cat: "Other", cmd: "?timers add (h:m:s) (Name)", desc: "Añade tiempo al temporizador.", desc_en: "Adds time to timer." },
+        { cat: "Other", cmd: "?timers sub (h:m:s) (Name)", desc: "Resta tiempo al temporizador.", desc_en: "Subtracts time from timer." },
+        { cat: "Other", cmd: "?prefix (New)", desc: "Cambia el prefijo del macro (máx 4 chars).", desc_en: "Changes macro prefix (max 4 chars)." },
+        { cat: "Other", cmd: "?set (Var) (Val)", desc: "Cambia cualquier variable del macro.", desc_en: "Sets any macro variable." },
+        { cat: "Other", cmd: "?get (Var)", desc: "Muestra el valor actual de una variable.", desc_en: "Shows current variable value." },
+        { cat: "Other", cmd: "?set bugrun (on/off)", desc: "Enciende/apaga Bug Run rápidamente.", desc_en: "Quick toggle for Bug Run." },
+        { cat: "Other", cmd: "?set priority (Val)", desc: "Cambia la lista de prioridades (Numeric|Default).", desc_en: "Changes priority list." },
+        { cat: "Other", cmd: "?help priority", desc: "Explica la lista de prioridades.", desc_en: "Explains priority list." },
+        { cat: "Other", cmd: "?get priority", desc: "Muestra prioridad actual.", desc_en: "Shows current priority." },
+        { cat: "Other", cmd: "?send (Keys)", desc: "Envía teclas (ej. {Space}).", desc_en: "Sends keystrokes (ex. {Space})." },
+        { cat: "Other", cmd: "?upload (Path)", desc: "Sube archivo de PC a Discord.", desc_en: "Uploads file from PC to Discord." },
+        { cat: "Other", cmd: "?download (Path)", desc: "Descarga archivo de Discord a PC.", desc_en: "Downloads file from Discord to PC." },
+        { cat: "Other", cmd: "?click [Opts]", desc: "Hace clic en pantalla.", desc_en: "Clicks on screen." },
+        { cat: "Other", cmd: "?click mode (Mode)", desc: "Cambia modo click (Screen, Relative, Window).", desc_en: "Changes click mode." },
+        { cat: "Other", cmd: "?shiftlock (1/0)", desc: "Activa o desactiva shiftlock.", desc_en: "Toggles shiftlock." },
+        { cat: "Other", cmd: "?restart", desc: "Reinicia tu PC.", desc_en: "Restarts your PC." },
+        { cat: "Other", cmd: "?shrine", desc: "Muestra rotación actual del shrine.", desc_en: "Shows current shrine rotation." },
+        { cat: "Other", cmd: "?shrine ready (Slot)", desc: "Marca slot del shrine como listo.", desc_en: "Marks shrine slot ready." },
+        { cat: "Other", cmd: "?shrine clear (Slot)", desc: "Limpia slot del shrine.", desc_en: "Clears shrine slot." },
+        { cat: "Other", cmd: "?blender", desc: "Muestra rotación actual del blender.", desc_en: "Shows current blender rotation." },
+        { cat: "Other", cmd: "?blender ready (Slot)", desc: "Marca slot del blender como listo.", desc_en: "Marks blender slot ready." },
+        { cat: "Other", cmd: "?blender clear (Slot)", desc: "Limpia slot del blender.", desc_en: "Clears blender slot." },
+        { cat: "Other", cmd: "?memorymatch / ?mm", desc: "Info sobre Memory Match.", desc_en: "Memory Match info." },
+        { cat: "Other", cmd: "?memorymatch enable (Game)", desc: "Activa un Memory Match específico.", desc_en: "Enables specific Memory Match." },
+        { cat: "Other", cmd: "?memorymatch disable (Game)", desc: "Desactiva un Memory Match específico.", desc_en: "Disables specific Memory Match." },
+        { cat: "Other", cmd: "?memorymatch ignore (Item)", desc: "Ignora un ítem en Memory Match.", desc_en: "Ignores item in Memory Match." },
+        { cat: "Other", cmd: "?set MemoryMatchInterruptCheck (1/0)", desc: "Permite interrumpir recolección para MM.", desc_en: "Interrupt gather for MM." },
+        
+        // --- BASIC UTILS ---
+        { cat: "Other", cmd: "?screenshot / ?ss", desc: "Toma captura pantalla.", desc_en: "Takes screenshot." },
+        { cat: "Other", cmd: "?stop / ?reload", desc: "Reinicia el macro.", desc_en: "Restarts macro." },
+        { cat: "Other", cmd: "?pause / ?unpause", desc: "Pausa/Reanuda macro.", desc_en: "Pauses/Resumes macro." },
+        { cat: "Other", cmd: "?rejoin (Delay)", desc: "Reconecta al juego.", desc_en: "Rejoins game." },
+        { cat: "Other", cmd: "?log", desc: "Sube debug_log.txt a Discord.", desc_en: "Uploads debug_log to Discord." },
+        { cat: "Other", cmd: "?keep / ?replace", desc: "Mantiene/Reemplaza amuleto.", desc_en: "Keeps/Replaces amulet." },
+        { cat: "Other", cmd: "?planters", desc: "Info actual de planters.", desc_en: "Current planters info." }
     ];
 
     const translations = {
@@ -497,7 +671,7 @@
 
         filtered.forEach(c => {
             const el = document.createElement('div');
-            el.className = 'cmd-card';
+            el.className = `cmd-card cat-${c.cat}`; // Add class for styling
             el.innerHTML = `
                 <div class="cmd-header"><span class="badge">${c.cat}</span></div>
                 <div class="code-block">${c.cmd}</div>
@@ -511,13 +685,19 @@
     }
 
     function renderFilters() {
-        const cats = ['All', ...new Set(comandos.map(c => c.cat))];
+        // Orden personalizado de categorías para que sea intuitivo
+        const order = ["All", "Info", "Gather", "Collect", "Kill", "Boost", "Planters", "Quest", "Status", "Settings", "Other"];
+        // Extraemos categorías presentes y las ordenamos
+        const uniqueCats = [...new Set(comandos.map(c => c.cat))];
+        const sortedCats = order.filter(c => c === "All" || uniqueCats.includes(c));
+
         const container = document.getElementById('filters');
         container.innerHTML = "";
         
-        cats.forEach(cat => {
+        sortedCats.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = `filter-chip ${cat === 'All' ? 'active' : ''}`;
+            btn.dataset.cat = cat; // For custom styling
             btn.textContent = cat;
             btn.onclick = () => {
                 document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
@@ -548,7 +728,6 @@
         const loadingId = appendLoading();
 
         // 3. Prepare Context (Open-ended)
-        // We give the list strictly as a reference for syntax, but allow free knowledge.
         const syntaxRef = comandos.map(c => c.cmd).join(", ");
         const systemPrompt = `
             You are an advanced AI assistant for the Roblox game "Bee Swarm Simulator" and the "Natro Macro" automation tool.
